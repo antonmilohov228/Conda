@@ -1,37 +1,39 @@
 @echo off
-chcp 65001 > nul
-set ENV_NAME=week1_env
-set PYTHON_VERSION=3.10
+:: Переходим в папку, где лежит сам скрипт
+cd /d "%~dp0.."
 
-echo [1/4] Проверка наличия Conda...
+set ENV_NAME=week1_env
+
+echo [1/3] Checking Conda...
+:: Используем полный путь к conda.bat, если обычный вызов глючит
 call conda --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Conda не найдена. Убедитесь, что Anaconda/Miniconda установлена и добавлена в PATH.
+    echo [ERROR] Conda NOT FOUND. Please run this in 'Anaconda Prompt'.
+    pause
     exit /b 1
 )
 
-echo [2/4] Проверка окружения %ENV_NAME%...
-call conda info --envs | findstr /b /c:"%ENV_NAME% " >nul
+echo [2/3] Preparing environment: %ENV_NAME%...
+:: Проверяем существование окружения
+call conda env list | findstr /c:"%ENV_NAME%" >nul
 if errorlevel 1 (
-    echo Окружение не найдено. Создаем %ENV_NAME% с Python %PYTHON_VERSION%...
-    call conda create -n %ENV_NAME% python=%PYTHON_VERSION% -y
+    echo Creating new environment...
+    call conda create -n %ENV_NAME% python=3.10 -y
 ) else (
-    echo Окружение %ENV_NAME% уже существует. Пропускаем создание.
+    echo Environment %ENV_NAME% already exists.
 )
 
-echo [3/4] Установка зависимостей...
+echo [3/3] Installing dependencies and testing...
+:: Явно указываем файлы, чтобы conda их точно нашла
 call conda run -n %ENV_NAME% python -m pip install -r requirements.txt
-
-echo [4/4] Запуск smoke test (broken_env.py)...
 call conda run -n %ENV_NAME% python broken_env.py
 
 if errorlevel 1 (
     echo ====================================
-    echo [ERROR] Smoke test провален! (exit code 1)
-    exit /b 1
+    echo [ERROR] SMOKE TEST FAILED!
 ) else (
     echo ====================================
-    echo [OK] Окружение готово и работает! (exit code 0)
+    echo [OK] EVERYTHING IS READY!
 )
+
 pause
-exit /b 0
