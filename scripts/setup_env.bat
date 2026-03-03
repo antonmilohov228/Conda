@@ -32,5 +32,6 @@ if errorlevel 1 (
 ) else (
     echo ====================================
     echo [OK] Окружение готово и работает! (exit code 0)
-    exit /b 0
 )
+pause
+exit /b 0
